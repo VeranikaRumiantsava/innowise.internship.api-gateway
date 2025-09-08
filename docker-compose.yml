@@ -1,0 +1,184 @@
+services:
+  # API Gateway
+  api-gateway:
+    build: .
+    image: api-gateway:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - authservice
+      - userservice
+      - orderservice
+    environment:
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://userservice:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://orderservice:8080
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://authservice:8080
+    networks:
+      - app_network
+
+  # Auth Service
+  authservice:
+    image: verdeth/authservice:latest
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres_authservice:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres_authservice
+      DB_PORT: 5432
+      DB_USER: rumronya
+      DB_PASSWORD: password
+      DB_NAME: auth
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_APPLICATION_NAME: auth-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # User Service
+  userservice:
+    image: verdeth/userservice:latest
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres_userservice:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres_userservice
+      DB_PORT: 5432
+      DB_USER: rumronya
+      DB_PASSWORD: password
+      DB_NAME: users
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_APPLICATION_NAME: user-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # Order Service
+  orderservice:
+    image: verdeth/orderservice:latest
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres_orderservice:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres_orderservice
+      DB_PORT: 5432
+      DB_USER: rumronya
+      DB_PASSWORD: password
+      DB_NAME: orders
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_APPLICATION_NAME: order-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  # Общий Redis
+  redis:
+    image: redis:7-alpine
+    container_name: shared-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app_network
+
+  # PostgreSQL для Auth Service
+  postgres_authservice:
+    image: postgres:15
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: rumronya
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_authservice:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rumronya -d auth"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app_network
+
+  # PostgreSQL для User Service
+  postgres_userservice:
+    image: postgres:15
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: rumronya
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata_userservice:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rumronya -d users"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app_network
+
+  # PostgreSQL для Order Service
+  postgres_orderservice:
+    image: postgres:15
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: rumronya
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata_orderservice:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rumronya -d orders"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app_network
+
+volumes:
+  pgdata_authservice:
+  pgdata_userservice:
+  pgdata_orderservice:
+  redis_data:
+
+networks:
+  app_network:
+    external: true

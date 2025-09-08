@@ -1,5 +1,6 @@
 package org.innowise.internship.api_gateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -11,6 +12,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 public class SecurityConfig {
+
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, ReactiveJwtDecoder jwtDecoder) {
@@ -31,8 +35,6 @@ public class SecurityConfig {
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
-        // секрет для HMAC (из application.properties можно взять через @Value)
-        String secretKey = "my-secret-key";
         return NimbusReactiveJwtDecoder.withSecretKey(
                 new SecretKeySpec(secretKey.getBytes(), "HMACSHA256")
         ).build();
