@@ -1,5 +1,4 @@
 services:
-  # API Gateway
   api-gateway:
     build: .
     image: api-gateway:latest
@@ -15,7 +14,6 @@ services:
     networks:
       - app_network
 
-  # Auth Service
   authservice:
     image: verdeth/authservice:latest
     ports:
@@ -42,7 +40,6 @@ services:
     networks:
       - app_network
 
-  # User Service
   userservice:
     image: verdeth/userservice:latest
     ports:
@@ -69,7 +66,6 @@ services:
     networks:
       - app_network
 
-  # Order Service
   orderservice:
     image: verdeth/orderservice:latest
     ports:
@@ -97,7 +93,6 @@ services:
     networks:
       - app_network
 
-  # Общий Redis
   redis:
     image: redis:7-alpine
     container_name: shared-redis
@@ -113,7 +108,6 @@ services:
     networks:
       - app_network
 
-  # PostgreSQL для Auth Service
   postgres_authservice:
     image: postgres:15
     container_name: postgres-auth
@@ -133,7 +127,6 @@ services:
     networks:
       - app_network
 
-  # PostgreSQL для User Service
   postgres_userservice:
     image: postgres:15
     container_name: postgres-user
@@ -153,7 +146,6 @@ services:
     networks:
       - app_network
 
-  # PostgreSQL для Order Service
   postgres_orderservice:
     image: postgres:15
     container_name: postgres-order
