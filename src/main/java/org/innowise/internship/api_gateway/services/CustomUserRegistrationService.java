@@ -47,8 +47,6 @@ public class CustomUserRegistrationService {
                 userId
         );
 
-        // Логируем объект перед отправкой
-        System.out.println("Sending to authservice: " + authDTO);
 
 
         return authClient.post()
@@ -61,6 +59,7 @@ public class CustomUserRegistrationService {
     private Mono<Void> rollbackUser(Long userId, Throwable error) {
         return userClient.delete()
                 .uri("/user/{id}", userId)
+                .header("X-User-Id", String.valueOf(userId))
                 .retrieve()
                 .bodyToMono(Void.class)
                 .then(Mono.error(error));
