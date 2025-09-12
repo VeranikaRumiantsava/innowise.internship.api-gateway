@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+import java.util.Base64;
 import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
@@ -22,6 +23,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/api/v1/auth/**").permitAll()
+                        .pathMatchers("/api/v1/register").permitAll()
                         .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -35,8 +37,9 @@ public class SecurityConfig {
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
         return NimbusReactiveJwtDecoder.withSecretKey(
-                new SecretKeySpec(secretKey.getBytes(), "HMACSHA256")
+                new SecretKeySpec(keyBytes, "HmacSHA256")
         ).build();
     }
 

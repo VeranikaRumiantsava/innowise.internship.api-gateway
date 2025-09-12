@@ -47,6 +47,10 @@ public class CustomUserRegistrationService {
                 userId
         );
 
+        // Логируем объект перед отправкой
+        System.out.println("Sending to authservice: " + authDTO);
+
+
         return authClient.post()
                 .uri("/api/v1/auth/register")
                 .bodyValue(authDTO)

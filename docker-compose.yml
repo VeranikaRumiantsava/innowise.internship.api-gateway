@@ -6,13 +6,12 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - authservice
-      - userservice
-      - orderservice
-    environment:
-      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://userservice:8080
-      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://orderservice:8080
-      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://authservice:8080
+      authservice:
+        condition: service_healthy
+      userservice:
+        condition: service_healthy
+      orderservice:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -36,7 +35,7 @@ services:
       REDIS_PORT: 6379
       SPRING_APPLICATION_NAME: auth-service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -63,7 +62,7 @@ services:
       REDIS_PORT: 6379
       SPRING_APPLICATION_NAME: user-service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -90,10 +89,11 @@ services:
       REDIS_PORT: 6379
       SPRING_APPLICATION_NAME: order-service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 40s
     networks:
       - app_network
 

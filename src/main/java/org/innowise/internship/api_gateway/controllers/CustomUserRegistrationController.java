@@ -6,6 +6,7 @@ import org.innowise.internship.api_gateway.dto.UserRegistrationDTO;
 import org.innowise.internship.api_gateway.services.CustomUserRegistrationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -18,9 +19,8 @@ public class CustomUserRegistrationController {
     private final CustomUserRegistrationService customUserRegistrationService;
 
     @PostMapping
-    public ResponseEntity<Mono<Void>> registerUser(@Valid UserRegistrationDTO userRegistrationDTO) {
-        return ResponseEntity.ok(
-                customUserRegistrationService.register(userRegistrationDTO)
-        );
+    public Mono<ResponseEntity<Void>> registerUser(@Valid @RequestBody UserRegistrationDTO userRegistrationDTO) {
+        return customUserRegistrationService.register(userRegistrationDTO)
+                .then(Mono.just(ResponseEntity.ok().<Void>build()));
     }
 }
